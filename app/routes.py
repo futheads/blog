@@ -108,13 +108,3 @@ def edit_profile():
 def test():
     abort(404)
 
-@app.errorhandler(404)
-def internal_error(error):
-    app.logger.error(error)
-    return render_template("404.html"), 404
-
-@app.errorhandler(500)
-def internal_error(error):
-    app.logger.error(error)
-    db.session.rollback()
-    return render_template("500.html"), 500
