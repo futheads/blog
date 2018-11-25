@@ -8,6 +8,7 @@ from app.forms import RegistrationForm
 from app import db
 from datetime import datetime
 from app.forms import EditProfileForm
+import logging
 
 #导入表单处理方法
 from app.forms import LoginForm
@@ -103,11 +104,17 @@ def edit_profile():
         form.about_me.data = current_user.about_me
     return render_template('edit_profile.html', title='个人资料编辑', form=form)
 
+@app.route("/test")
+def test():
+    abort(404)
+
 @app.errorhandler(404)
 def internal_error(error):
+    app.logger.error(error)
     return render_template("404.html"), 404
 
 @app.errorhandler(500)
 def internal_error(error):
+    app.logger.error(error)
     db.session.rollback()
     return render_template("500.html"), 500
