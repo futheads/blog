@@ -8,7 +8,6 @@ from app.forms import RegistrationForm
 from app import db
 from datetime import datetime
 from app.forms import EditProfileForm
-import logging
 
 #导入表单处理方法
 from app.forms import LoginForm
@@ -70,6 +69,9 @@ def register():
         user.set_password(form.password.data)
         db.session.add(user)
         db.session.commit()
+        # make the user follow him/herself
+        db.session.add(user.follow(user))
+        db.session.commit()
         return redirect(url_for('login'))
     return render_template('register.html', title='注册', form=form)
 
@@ -81,7 +83,9 @@ def user(username):
         {'author':user,'body':'测试Post #1号'},
         {'author':user,'body':'测试Post #2号'}
     ]
-    return render_template('user.html',user=user,posts=posts)
+    if user is None:
+        abort(404)
+    return render_template('user.html',user=user, posts=posts)
 
 @app.before_request
 def before_request():
@@ -104,7 +108,45 @@ def edit_profile():
         form.about_me.data = current_user.about_me
     return render_template('edit_profile.html', title='个人资料编辑', form=form)
 
-@app.route("/test")
+@app.route("/follow/<username>")
+@login_required
+def follow(username):
+    user = User.query.filter_by(username=username).first()
+    if user is None:
+        flash('User %s not found.' % username)
+        return redirect(url_for('index'))
+    if user == current_user:
+        flash('You can\'t follow yourself!')
+        return redirect(url_for("user", username=username))
+    u = current_user.follow(user)
+    if u is None:
+        flash('Cannot follow ' + username + '.')
+        return redirect(url_for("user", username=username))
+    db.session.add(u)
+    db.session.commit()
+    flash('You are now following ' + username + '!')
+    return redirect(url_for("user", username=username))
+
+@app.route("/unfollow/<username>")
+@login_required
+def unfollow(username):
+    user = User.query.filter_by(username=username).first()
+    if user is None:
+        flash("User %s not found." % username)
+        return redirect(url_for("index"))
+    if user == current_user:
+        flash("You cann't unfollow yourself!")
+        redirect(url_for("user", username=username))
+    u = current_user.unfollow(user)
+    if u is None:
+        flash("Cannot unfollow " +username + ".")
+        redirect(url_for("user", username=username))
+    db.session.add(u)
+    db.session.commit()
+    flash("You have stopped following " + username + ".")
+    return redirect(url_for("user", username=username))
+
+@app.route("/test_error")
 def test():
     abort(404)
 
