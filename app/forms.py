@@ -34,3 +34,6 @@ class EditProfileForm(FlaskForm):
     username = StringField('用户名', validators=[DataRequired(message='请输入用户名!')])
     about_me = TextAreaField('关于我', validators=[Length(min=0, max=140)])
     submit = SubmitField('提交')
+
+class PostForm(FlaskForm):
+    post = StringField("博客", validators=[DataRequired("请输入博客内容！")])

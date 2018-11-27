@@ -1,34 +1,32 @@
 from app import app
 from flask import render_template, flash, redirect, url_for, abort
-from app.models import User
+from app.models import User, Post
 from flask_login import login_required, login_user, logout_user, current_user
 from flask import request
 from werkzeug.urls import url_parse
-from app.forms import RegistrationForm
+from app.forms import RegistrationForm, PostForm
 from app import db
 from datetime import datetime
 from app.forms import EditProfileForm
+from config import Config
 
 #导入表单处理方法
 from app.forms import LoginForm
 
-@app.route('/')
-@app.route('/index')
-# @login_required
-def index():
-    user = {'username': 'futhead'}
-    posts = [
-        {
-            'author': {'username': 'fuhtead'},
-            'body': '载坚持3个月我就可以跑路了'
-
-        },
-        {
-            'author': {'username': '漠 寒'},
-            'body': '我是扶小船'
-        }
-    ]
-    return render_template("index.html", title="我的", posts=posts)
+@app.route('/', methods=['GET', 'POST'])
+@app.route('/index', methods=['GET', 'POST'])
+@app.route('/index/<int:page>', methods=['GET', 'POST'])
+@login_required
+def index(page = 1):
+    form = PostForm()
+    if form.validate_on_submit():
+        post = Post(body=form.post.data, timestamp=datetime.utcnow(), author=current_user)
+        db.session.add(post)
+        db.session.commit()
+        flash("Your post is now live!")
+        return redirect(url_for("index"))
+    posts = current_user.followed_posts().paginate(page, Config.POSTS_PER_PAGE, False)
+    return render_template("index.html", title="主页", form=form,  posts=posts)
 
 @app.route('/login', methods=['GET','POST'])
 def login():
@@ -76,15 +74,14 @@ def register():
     return render_template('register.html', title='注册', form=form)
 
 @app.route('/user/<username>')
+@app.route('/user/<username>/<int:page>')
 @login_required
-def user(username):
+def user(username, page=1):
     user = User.query.filter_by(username=username).first_or_404()
-    posts = [
-        {'author':user,'body':'测试Post #1号'},
-        {'author':user,'body':'测试Post #2号'}
-    ]
     if user is None:
-        abort(404)
+        flash("User %s not found." % username)
+        return  redirect(url_for("index"))
+    posts = user.posts.paginate(page, Config.POSTS_PER_PAGE, False)
     return render_template('user.html',user=user, posts=posts)
 
 @app.before_request

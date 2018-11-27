@@ -12,3 +12,5 @@ class Config(object):
 
     # administrator list
     ADMINS = ["futhead@163.com"]
+
+    POSTS_PER_PAGE = 3
