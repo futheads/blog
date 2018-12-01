@@ -1,18 +1,20 @@
-from app import app
-from flask import render_template, flash, redirect, url_for, abort
-from app.models import User, Post
-from flask_login import login_required, login_user, logout_user, current_user
-from flask import request
-from werkzeug.urls import url_parse
-from app.forms import RegistrationForm, PostForm
-from app import db
 from datetime import datetime
-from app.forms import EditProfileForm
-from config import Config
-from emails import follower_notification
 
-#导入表单处理方法
+from flask import render_template, flash, redirect, url_for, abort
+from flask import request
+from flask_login import login_required, login_user, logout_user, current_user
+from werkzeug.urls import url_parse
+
+from app import app
+from app import db
+from app.emails import follower_notification
+from app.forms import EditProfileForm
+# 导入表单处理方法
 from app.forms import LoginForm
+from app.forms import RegistrationForm, PostForm
+from app.models import User, Post
+from config import Config
+
 
 @app.route('/', methods=['GET', 'POST'])
 @app.route('/index', methods=['GET', 'POST'])
