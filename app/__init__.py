@@ -3,9 +3,11 @@ from config import Config
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_login import LoginManager
+from flask_mail import Mail
 
 # 创建app应用,__name__是python预定义变量，被设置为使用本模块.
 app = Flask(__name__)
+mail = Mail(app)
 
 if not app.debug:
     import logging

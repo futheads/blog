@@ -9,6 +9,7 @@ from app import db
 from datetime import datetime
 from app.forms import EditProfileForm
 from config import Config
+from emails import follower_notification
 
 #导入表单处理方法
 from app.forms import LoginForm
@@ -122,6 +123,7 @@ def follow(username):
     db.session.add(u)
     db.session.commit()
     flash('You are now following ' + username + '!')
+    follower_notification(user, current_user)
     return redirect(url_for("user", username=username))
 
 @app.route("/unfollow/<username>")
